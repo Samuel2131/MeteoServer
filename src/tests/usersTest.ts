@@ -94,7 +94,7 @@ describe("endpoints users", () => {
             status.should.be.equal(404);
         });
         it("test 404 for user not found", async () => {
-            const { status } = await request(app).post(`${pathUser}login`).send({email: "emailacaso@gmail.com", password: "12345678910"});
+            const { status } = await request(app).post(`${pathUser}login`).send({email: "emailacaso@gmail.com", password: "Password5678"});
             status.should.be.equal(404);
         });
         it("test 200 for right login", async () => {
