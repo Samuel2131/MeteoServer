@@ -18,7 +18,6 @@ app.use("/v1/forecastWeather", forecastWeather);
 app.use("/v1/users", users);
 app.use("/v1/users/favorites", userFavorites);
 
-console.log(process.env.VAR);
 app.listen(process.env.PORT, async () => {
     console.log("Server is running");
     mongoose.connect(`mongodb+srv://samperisisamuel:${process.env.PASSWORD}@UserDB.yvd6jyw.mongodb.net/${process.env.DB}?retryWrites=true&w=majority`);
