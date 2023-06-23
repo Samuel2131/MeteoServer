@@ -5,6 +5,7 @@ import { should } from "chai";
 import { dropUserDB } from "../db/dbUsers";
 import { User } from "../models/mongooseSchema";
 import "dotenv/config";
+import { longPassword } from "../utils/utils";
 
 const pathUser = "/v1/users/";
 const pathUserFavorites = "/v1/users/favorites/";
@@ -37,6 +38,10 @@ describe("endpoints users", () => {
         });
         it("test 400 for short password", async () => {
             const { status } = await request(app).post(`${pathUser}signup`).send({...user, password:"123", email: "emailacaso@gmail.com"});
+            status.should.be.equal(400);
+        });
+        it("test 400 for long password", async () => {
+            const { status } = await request(app).post(`${pathUser}signup`).send({...user, password:longPassword, email: "emailacaso@gmail.com"});
             status.should.be.equal(400);
         });
         it("test 400 for missing uppercase in password", async () => {
