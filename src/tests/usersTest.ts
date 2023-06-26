@@ -171,7 +171,7 @@ describe("endpoints users", () => {
             status2.should.be.equal(200);
         });
     });
-    describe("test favorites", () => {
+    describe.only("test favorites", () => {
         let newUser: User;
         before(async () => {
             newUser = (await request(app).post(`${pathUser}signup`).send({...user})).body;

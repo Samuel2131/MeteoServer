@@ -10,8 +10,8 @@ export const urlWeatherMap =  "https://api.openweathermap.org/data/2.5/weather";
 export const urlAirPollutionApi = "http://api.openweathermap.org/data/2.5/air_pollution";
 export const urlGeocodingApi = "http://api.openweathermap.org/geo/1.0/direct";
 export const urlForecastWeather = "https://api.openweathermap.org/data/2.5/forecast";
-export const tokenLifetime = 60 * 60;
-export const refreshTokenLifetime = 120 * 60;
+export const tokenLifetime = 1 * 60;
+export const refreshTokenLifetime = 2 * 60;
 export const longPassword = "LongPassword1LongPassword1LongPassword1LongPassword1LongPassword1";
 export const regexPasswordValidation = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,32}$/;
 export const saltRounds = 10;
@@ -26,10 +26,21 @@ export const showErrors = (req: Request, res: Response, next: NextFunction) => {
 export const isAuth = (req: Request, res: Response, next: NextFunction) => {
     try{
         const user = (jwt.verify(req.headers.authorization as string, sshKey)) as JwtPayload;
+        res.locals.user = user;
         if(!isIn(user.email)) return res.status(401).json({message: "not autorizhed"});
         else next();
-    } catch (e){
-        res.status(400).json({message: "invalid token..."});
+    } catch (e: any){
+        if(req.headers.refreshtoken){
+            try{
+                const user = (jwt.verify(req.headers.refreshtoken as string, sshKey)) as JwtPayload;
+                res.locals.user = user;
+                if(!isIn(user.email)) return res.status(401).json({message: "not autorizhed"});
+                else next();
+            } catch(e: any) {
+                return res.status(401).json({message: e.message});
+            }
+        }
+        else res.status(401).json({message: e.message});
     }
 };
 
