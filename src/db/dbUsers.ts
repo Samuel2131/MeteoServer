@@ -9,7 +9,6 @@ export const insertUser = async (newObj: User): Promise<ResponseDB> => {
         await user.save();
         return {code: 201, payload: getUserFromDocument(user)};
     } catch(e: any) {
-        if(e.code && e.code === 11000) return {code: 409, payload: null};
         return {code: 500, payload: null};
     }
 };

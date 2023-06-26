@@ -12,9 +12,12 @@ export default class Users {
 
         body.cityFavorites = [];
 
+        const {code: checkCode } = await find(body.email);
+        if(checkCode === 500) return res.status(500).json({message: "server error..."});
+        if(checkCode === 200) return res.status(409).json({message: "Insert err..."});
+
         const {code, payload} = await insertUser(body);
         if(code === 500) return res.status(code).json({message: "server error..."});
-        if(code === 409) return res.status(code).json({message: "Insert err..."});
         res.status(code).json(getUserFromSignup(payload!));
     };
 
