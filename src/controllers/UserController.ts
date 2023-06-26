@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import bycript from "bcrypt";
 import { find, findWithVerify, insertUser, isIn, replaceOne } from "../db/dbUsers";
 import { Request, Response } from "express";
-import { convertToken, getToken, saltRounds } from "../utils/utils";
+import { convertToken, getRefreshToken, getToken, getUserFromSignup, getUserFromValidate, saltRounds } from "../utils/utils";
 
 export default class Users {
     public static readonly signup = async ({ body }: Request, res: Response) => {
@@ -12,39 +12,39 @@ export default class Users {
 
         body.cityFavorites = [];
 
-        const user = await insertUser(body);
-        if(user === 500) return res.status(500).json({message: "server error..."});
-        if(user === 409) return res.status(409).json({message: "Insert err..."});
-        if(typeof user !== "number") res.status(201).json({id: user.id, email: user.email, username: user.username ,favorites: user.cityFavourites, verify: user.verify});
+        const {code, payload} = await insertUser(body);
+        if(code === 500) return res.status(code).json({message: "server error..."});
+        if(code === 409) return res.status(code).json({message: "Insert err..."});
+        res.status(code).json(getUserFromSignup(payload!));
     };
 
     public static readonly validate = async ({params}: Request, res: Response) => {
-        const user = await findWithVerify(params.token);
-        if(typeof user === "number") return res.status(500).json({message: "server error..."});
-        if(!user) res.status(404).json({message: "user not found..."});
+        const {code, payload} = await findWithVerify(params.token);
+        if(code === 500) return res.status(code).json({message: "server error..."});
+        if(!payload) res.status(code).json({message: "user not found..."});
         else {
-            const verify = user.verify;
-            if(!await replaceOne(verify as string, {id: user.id, cityFavourites: [], username: user.username, email: user.email, password: user.password})) return res.status(500).json({message: "server error..."});
+            const verify = payload.verify;
+            if((await replaceOne(verify as string, getUserFromValidate(payload))).code === 500) return res.status(500).json({message: "server error..."});
             res.json({message: "confirmed user"});
         }
     };
 
     public static readonly login = async ({body}: Request, res:  Response) => {
-        const user = await find(body.email);
-        if(typeof user === "number") return res.status(500).json({message: "server error..."});
-        if(!user || user.verify) res.status(404).json({message: "user not found..."});
-        else if(!await bycript.compare(body.password, user.password)) res.status(401).json({message: "wrong credentials..."});
+        const {code, payload} = await find(body.email);
+        if(code === 500) return res.status(code).json({message: "server error..."});
+        if(!payload || payload.verify) res.status(404).json({message: "user not found..."});
+        else if(!await bycript.compare(body.password, payload.password)) res.status(401).json({message: "wrong credentials..."});
         else { 
             const userWithoutPassword = {
-                id: user.id,
-                email: user.email,
-                username: user.username,
+                id: payload.id,
+                email: payload.email,
+                username: payload.username,
                 cityFavourites: [],
                 token: "",
                 refreshToken: ""
             };
-            userWithoutPassword.token = getToken(user);
-            userWithoutPassword.refreshToken = getToken(user);
+            userWithoutPassword.token = getToken(payload);
+            userWithoutPassword.refreshToken = getRefreshToken(payload);
             res.json(userWithoutPassword);
         }
     };
@@ -52,17 +52,17 @@ export default class Users {
     public static readonly me = async ({headers}: Request, res: Response) => {
         try{
             const JwtPayload: any = convertToken(headers.authorization!);
-            const user = await find(JwtPayload!.email);
-            if(user && typeof user !== "number"){
-                if(!isIn(user.email)) return res.status(401).json({message: "not autorizhed"});
+            const {code, payload} = await find(JwtPayload!.email);
+            if(payload){
+                if(!isIn(payload.email)) return res.status(401).json({message: "not autorizhed"});
                 res.json({
-                    id: user.id,
-                    username: user.username,
-                    cityFavorites: user.cityFavourites,
-                    email: user.email
+                    id: payload.id,
+                    username: payload.username,
+                    cityFavorites: payload.cityFavourites,
+                    email: payload.email
                 });
             }
-            else return res.status(500).json({message: "server error..."});
+            else return res.status(code).json({message: "server error..."});
         } catch(err: any) {
             res.status(401).json({message: err.message});
         }
@@ -71,15 +71,15 @@ export default class Users {
     public static readonly reauthorization = async ({headers}: Request, res: Response) => {
         try{
             const JwtPayload: any = convertToken(headers.authorization!);
-            const user = await find(JwtPayload!.email);
-            if(user && typeof user !== "number"){
-                if(!isIn(user.email)) return res.status(401).json({message: "not autorizhed"});
+            const {code, payload} = await find(JwtPayload!.email);
+            if(payload){
+                if(!isIn(payload.email)) return res.status(401).json({message: "not autorizhed"});
                 res.json({
-                    token: getToken(user),
-                    refreshToken: getToken(user)
+                    token: getToken(payload),
+                    refreshToken: getToken(payload)
                 });
             }
-            else return res.status(500).json({message: "server error..."});
+            else return res.status(code).json({message: "server error..."});
         } catch(e: any) {
             res.status(401).json({message: e.message});
         }

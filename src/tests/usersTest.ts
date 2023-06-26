@@ -30,7 +30,7 @@ describe("endpoints users", () => {
             body.should.have.property("username").equal(user.username);
             body.should.have.property("email").equal(user.email);
             body.should.not.have.property("password");
-            body.should.have.property("favorites").have.length(0);
+            body.should.have.property("cityFavourites").have.length(0);
         });
         it("test 409 for email already present", async () => {
             const { status } = await request(app).post(`${pathUser}signup`).send({...user});
