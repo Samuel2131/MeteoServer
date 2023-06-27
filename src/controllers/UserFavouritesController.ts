@@ -17,6 +17,7 @@ export default class UserFavourites {
     public static readonly getCity = async (_: Request, res: Response) => {
         try{
             const {code, payload} = await find(res.locals.user.email);
+            payload?.cityFavourites.sort();
             if(payload) res.status(code).json(payload.cityFavourites);
         } catch(e){
             res.status(500).json({message: "server error"});

@@ -4,6 +4,7 @@ import bycript from "bcrypt";
 import { find, findWithVerify, insertUser, isIn, replaceOne } from "../db/dbUsers";
 import { Request, Response } from "express";
 import { convertToken, getRefreshToken, getToken, getUserFromSignup, getUserFromValidate, saltRounds } from "../utils/utils";
+import { sendEmail } from "../utils/utilsEmail";
 
 export default class Users {
     public static readonly signup = async ({ body }: Request, res: Response) => {
@@ -18,6 +19,9 @@ export default class Users {
 
         const {code, payload} = await insertUser(body);
         if(code === 500) return res.status(code).json({message: "server error..."});
+        if(payload && payload.verify) {
+            if(!(await sendEmail(payload.email, payload.verify))) return res.status(500).json({message: "Unable to send validation email"});
+        }
         res.status(code).json(getUserFromSignup(payload!));
     };
 
