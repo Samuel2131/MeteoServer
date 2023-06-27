@@ -27,6 +27,7 @@ router.get("/validate/:token",
 
 router.get("/me", 
     header("authorization").isJWT(), 
+    header("refreshtoken").optional().isJWT(),
     showErrors, 
     Users.me
 );

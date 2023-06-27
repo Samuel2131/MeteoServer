@@ -1,12 +1,17 @@
 
 import { User } from "./mongooseSchema";
 
-export type ResponseDB = {
+type Message = {
     code: number,
-    payload: User | null
+    text?: string
+}
+
+export type ResponseDB = {
+    message: Message
+    payload?: User | null,
 }
 
 export type ResponseArrayDB = {
-    code: number,
-    payload: User[] | null
+    message: Message
+    payload?: User[] | null,
 }

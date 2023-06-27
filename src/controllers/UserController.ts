@@ -13,12 +13,12 @@ export default class Users {
 
         body.cityFavorites = [];
 
-        const {code: checkCode } = await find(body.email);
-        if(checkCode === 500) return res.status(500).json({message: "server error..."});
+        const {message: {code: checkCode, text: checkText }}= await find(body.email);
+        if(checkCode === 500) return res.status(500).json({message: checkText});
         if(checkCode === 200) return res.status(409).json({message: "Insert err..."});
 
-        const {code, payload} = await insertUser(body);
-        if(code === 500) return res.status(code).json({message: "server error..."});
+        const {message: {code, text}, payload} = await insertUser(body);
+        if(code === 500) return res.status(code).json({message: text});
         if(payload && payload.verify) {
             if(!(await sendEmail(payload.email, payload.verify))) return res.status(500).json({message: "Unable to send validation email"});
         }
@@ -26,19 +26,20 @@ export default class Users {
     };
 
     public static readonly validate = async ({params}: Request, res: Response) => {
-        const {code, payload} = await findWithVerify(params.token);
-        if(code === 500) return res.status(code).json({message: "server error..."});
+        const {message: {code, text}, payload} = await findWithVerify(params.token);
+        if(code === 500) return res.status(code).json({message: text});
         if(!payload) res.status(code).json({message: "user not found..."});
         else {
             const verify = payload.verify;
-            if((await replaceOne(verify as string, getUserFromValidate(payload))).code === 500) return res.status(500).json({message: "server error..."});
+            const {message: {code, text}} = await replaceOne(verify as string, getUserFromValidate(payload));
+            if(code === 500) return res.status(code).json({message: text});
             res.json({message: "confirmed user"});
         }
     };
 
     public static readonly login = async ({body}: Request, res:  Response) => {
-        const {code, payload} = await find(body.email);
-        if(code === 500) return res.status(code).json({message: "server error..."});
+        const {message: {code, text}, payload} = await find(body.email);
+        if(code === 500) return res.status(code).json({message: text});
         if(!payload || payload.verify) res.status(404).json({message: "user not found..."});
         else if(!await bycript.compare(body.password, payload.password)) res.status(401).json({message: "wrong credentials..."});
         else { 
@@ -58,8 +59,15 @@ export default class Users {
 
     public static readonly me = async ({headers}: Request, res: Response) => {
         try{
-            const JwtPayload: any = convertToken(headers.authorization!);
-            const {code, payload} = await find(JwtPayload!.email);
+            let JwtPayload: any = convertToken(headers.authorization!);
+            if(!JwtPayload.email) {
+                if(JwtPayload.message === "jwt expired") {
+                    if(headers.refreshtoken && typeof headers.refreshtoken === "string") JwtPayload = convertToken(headers.refreshtoken);
+                    if(!JwtPayload.email) return res.status(401).json({message: JwtPayload.message});
+                }
+                else return res.status(401).json({message: JwtPayload.message});
+            }
+            const {message: {code}, payload} = await find(JwtPayload.email);
             if(payload){
                 if(!isIn(payload.email)) return res.status(401).json({message: "not autorizhed"});
                 res.json({
@@ -70,15 +78,16 @@ export default class Users {
                 });
             }
             else return res.status(code).json({message: "server error..."});
-        } catch(err: any) {
-            res.status(401).json({message: err.message});
+        } catch(e: any) {
+            res.status(500).json({message: e.message});
         }
     };
 
     public static readonly reauthorization = async ({headers}: Request, res: Response) => {
         try{
             const JwtPayload: any = convertToken(headers.authorization!);
-            const {code, payload} = await find(JwtPayload!.email);
+            if(!JwtPayload.email) return res.status(401).json({message: JwtPayload.message});
+            const {message: {code}, payload} = await find(JwtPayload.email);
             if(payload){
                 if(!isIn(payload.email)) return res.status(401).json({message: "not autorizhed"});
                 res.json({
@@ -88,7 +97,7 @@ export default class Users {
             }
             else return res.status(code).json({message: "server error..."});
         } catch(e: any) {
-            res.status(401).json({message: e.message});
+            res.status(500).json({message: e.message});
         }
     };
 }
