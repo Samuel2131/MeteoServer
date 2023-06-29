@@ -18,6 +18,6 @@ export type User = {
     password: string,
     cityFavourites: string[],
     verify?: string,
-    token?: string,
+    accessToken?: string,
     refreshToken?: string
 }

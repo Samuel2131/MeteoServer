@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import bycript from "bcrypt";
 import { find, findWithVerify, insertUser, isIn, replaceOne } from "../db/dbUsers";
 import { Request, Response } from "express";
-import { convertToken, getRefreshToken, getToken, getUserFromSignup, getUserFromValidate, saltRounds } from "../utils/utils";
+import { convertToken, getRefreshToken, getAccessToken, getUserFromSignup, getUserFromValidate, saltRounds } from "../utils/utils";
 import { sendEmail } from "../utils/utilsEmail";
 
 export default class Users {
@@ -48,10 +48,10 @@ export default class Users {
                 email: payload.email,
                 username: payload.username,
                 cityFavourites: [],
-                token: "",
+                accessToken: "",
                 refreshToken: ""
             };
-            userWithoutPassword.token = getToken(payload);
+            userWithoutPassword.accessToken = getAccessToken(payload);
             userWithoutPassword.refreshToken = getRefreshToken(payload);
             res.json(userWithoutPassword);
         }
@@ -59,14 +59,8 @@ export default class Users {
 
     public static readonly me = async ({headers}: Request, res: Response) => {
         try{
-            let JwtPayload: any = convertToken(headers.authorization!);
-            if(!JwtPayload.email) {
-                if(JwtPayload.message === "jwt expired") {
-                    if(headers.refreshtoken && typeof headers.refreshtoken === "string") JwtPayload = convertToken(headers.refreshtoken);
-                    if(!JwtPayload.email) return res.status(401).json({message: JwtPayload.message});
-                }
-                else return res.status(401).json({message: JwtPayload.message});
-            }
+            const JwtPayload: any = convertToken(headers.authorization!);
+            if(!JwtPayload.email) return res.status(401).json({message: JwtPayload.message});
             const {message: {code}, payload} = await find(JwtPayload.email);
             if(payload){
                 if(!isIn(payload.email)) return res.status(401).json({message: "not autorizhed"});
@@ -85,14 +79,14 @@ export default class Users {
 
     public static readonly reauthorization = async ({headers}: Request, res: Response) => {
         try{
-            const JwtPayload: any = convertToken(headers.authorization!);
-            if(!JwtPayload.email) return res.status(401).json({message: JwtPayload.message});
+            const JwtPayload: any = convertToken(headers.refreshtoken!);
+            if(!JwtPayload.email) return res.status(403).json({message: JwtPayload.message});
             const {message: {code}, payload} = await find(JwtPayload.email);
             if(payload){
-                if(!isIn(payload.email)) return res.status(401).json({message: "not autorizhed"});
+                if(!isIn(payload.email)) return res.status(403).json({message: "forbidden access..."});
                 res.json({
-                    token: getToken(payload),
-                    refreshToken: getToken(payload)
+                    accessToken: getAccessToken(payload),
+                    refreshToken: getAccessToken(payload)
                 });
             }
             else return res.status(code).json({message: "server error..."});

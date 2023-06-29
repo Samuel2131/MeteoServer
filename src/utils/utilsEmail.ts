@@ -15,7 +15,7 @@ const VerifyAccount = (tokenVerify: string) => {
       <body>
         <h1>Account Verification</h1>
         <p>Please click the following link to verify your account:</p>
-        <a href="http://localhost:${process.env.PORT}/v1/users/validate/${tokenVerify}">Verify Account</a>
+        <a href=" http://localhost:3000/home/${tokenVerify}">Verify Account</a>
       </body>
     </html>`;
 };

@@ -107,7 +107,8 @@ describe("endpoints users", () => {
             const { body, status } = await request(app).post(`${pathUser}login`).send({email: user.email, password: user.password});
 
             status.should.be.equal(200);
-            (body.token).should.be.not.empty;
+            (body.accessToken).should.be.not.empty;
+            (body.refreshToken).should.be.not.empty;
         });
         it("test 401 for unauthorized", async () => {
             const { status } = await request(app).post(`${pathUser}login`).send({email: user.email, password: "wrong password"});
@@ -124,12 +125,12 @@ describe("endpoints users", () => {
         after(async () => {
             await dropUserDB();
         });
-        it("test 401 for invalid token", async () => {
+        it("test 401 for invalid accessToken", async () => {
             const { status } = await request(app).get(`${pathUser}me`).set({authorization: "wrong-token"});
             status.should.be.equal(401);
         });
-        it("test 200 for right token", async () => {
-            const { body, status } = await request(app).get(`${pathUser}me`).set({authorization: newUser.token});
+        it("test 200 for right accessToken", async () => {
+            const { body, status } = await request(app).get(`${pathUser}me`).set({authorization: newUser.accessToken});
 
             status.should.be.equal(200);
             body.should.have.property("id");
@@ -149,25 +150,25 @@ describe("endpoints users", () => {
             await dropUserDB();
         });
         it("test 200 for right refreshToken", async () => {
-            const { body, status } = await request(app).get(`${pathUser}reauthorization`).set({authorization: newUser.refreshToken});
+            const { body, status } = await request(app).get(`${pathUser}reauthorization`).set({refreshtoken: newUser.refreshToken});
 
             status.should.be.equal(200);
-            body.should.have.property("token");
+            body.should.have.property("accessToken");
             body.should.have.property("refreshToken");
         });
-        it("test 401 for invalid refreshToken", async () => {
-            const { status } = await request(app).get(`${pathUser}reauthorization`).set({authorization: "wrong-refresh-token"});
-            status.should.be.equal(401);
+        it("test 403 for invalid refreshToken", async () => {
+            const { status } = await request(app).get(`${pathUser}reauthorization`).set({refreshtoken: "wrong-refresh-token"});
+            status.should.be.equal(403);
         });
         it("test 200 for valid new tokens", async () => {
-            const { body } = await request(app).get(`${pathUser}reauthorization`).set({authorization: newUser.refreshToken});
-            body.should.have.property("token");
+            const { body } = await request(app).get(`${pathUser}reauthorization`).set({refreshtoken: newUser.refreshToken});
+            body.should.have.property("accessToken");
             body.should.have.property("refreshToken");
 
-            const { status: status1 } = await request(app).get(`${pathUser}me`).set({authorization: body.token});
+            const { status: status1 } = await request(app).get(`${pathUser}me`).set({authorization: body.accessToken});
             status1.should.be.equal(200);
 
-            const { status: status2 } = await request(app).get(`${pathUser}reauthorization`).set({authorization: body.refreshToken});
+            const { status: status2 } = await request(app).get(`${pathUser}reauthorization`).set({refreshtoken: body.refreshToken});
             status2.should.be.equal(200);
         });
     });
@@ -182,31 +183,31 @@ describe("endpoints users", () => {
             await dropUserDB();
         });
         it("test 201 for right push city", async () => {
-            const { status } = await request(app).post(`${pathUserFavorites}/Roma`).set({authorization: newUser.token});
+            const { status } = await request(app).post(`${pathUserFavorites}/Roma`).set({authorization: newUser.accessToken});
             status.should.be.equal(201);
 
-            const { body } = await request(app).get(`${pathUserFavorites}`).set({authorization: newUser.token});
+            const { body } = await request(app).get(`${pathUserFavorites}`).set({authorization: newUser.accessToken});
             body.should.have.length(1);
         });
         it("test 409 for city already present", async () => {
-            const { status } = await request(app).post(`${pathUserFavorites}/Roma`).set({authorization: newUser.token});
+            const { status } = await request(app).post(`${pathUserFavorites}/Roma`).set({authorization: newUser.accessToken});
             status.should.be.equal(409);
         });
         it("test 200 for right get city", async () => {
-            const { body, status } = await request(app).get(`${pathUserFavorites}`).set({authorization: newUser.token});
+            const { body, status } = await request(app).get(`${pathUserFavorites}`).set({authorization: newUser.accessToken});
 
             status.should.be.equal(200);
             body.should.have.length(1);
         });
         it("test 404 for city to be deleted not found", async () => {
-            const { status } = await request(app).delete(`${pathUserFavorites}/Catania`).set({authorization: newUser.token});
+            const { status } = await request(app).delete(`${pathUserFavorites}/Catania`).set({authorization: newUser.accessToken});
             status.should.be.equal(404);
         });
         it("test 200 for right city deleted", async () => {
-            const { status } = await request(app).delete(`${pathUserFavorites}/Roma`).set({authorization: newUser.token});
+            const { status } = await request(app).delete(`${pathUserFavorites}/Roma`).set({authorization: newUser.accessToken});
             status.should.be.equal(200);
 
-            const { body } = await request(app).get(`${pathUserFavorites}`).set({authorization: newUser.token});
+            const { body } = await request(app).get(`${pathUserFavorites}`).set({authorization: newUser.accessToken});
             body.should.have.length(0);
         });
         it("test 401 for invalid token(post)", async () => {

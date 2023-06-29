@@ -10,7 +10,7 @@ export const urlWeatherMap =  "https://api.openweathermap.org/data/2.5/weather";
 export const urlAirPollutionApi = "http://api.openweathermap.org/data/2.5/air_pollution";
 export const urlGeocodingApi = "http://api.openweathermap.org/geo/1.0/direct";
 export const urlForecastWeather = "https://api.openweathermap.org/data/2.5/forecast";
-export const tokenLifetime = 1 * 60;
+export const accesTokenLifetime = 1 * 60;
 export const refreshTokenLifetime = 2 * 60;
 export const longPassword = "LongPassword1LongPassword1LongPassword1LongPassword1LongPassword1";
 export const regexPasswordValidation = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,32}$/;
@@ -19,7 +19,10 @@ export const sshKey = "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAl
 
 export const showErrors = (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req).array();
-    if(errors.length !== 0 && errors[0].location === "headers" && errors[0].param === "authorization") return res.status(401).json({errors});
+    if(errors.length !== 0 && errors[0].location === "headers"){
+        if(errors[0].param === "authorization") return res.status(401).json({errors});
+        else if(errors[0].param === "refreshtoken") return res.status(403).json({errors});
+    }
     validationResult(req).isEmpty() ? next() : res.status(400).json({errors});
 };
 
@@ -44,7 +47,7 @@ export const isAuth = (req: Request, res: Response, next: NextFunction) => {
     }
 };
 
-export const convertToken = (jwtToken: string) => {
+export const convertToken = (jwtToken: string | string[]) => {
     let JwtPayload;
     jwt.verify(jwtToken as string, sshKey, (err, decoded) => {
         if(err) JwtPayload = err;
@@ -61,7 +64,7 @@ export const getUserFromDocument = (user: any) => {
         password: user.password,
         cityFavourites: user.cityFavourites,
         verify: user.verify || null,
-        token: user.token || null,
+        accessToken: user.accessToken || null,
         refreshToken: user.refreshToken || null,
     };
 };
@@ -86,5 +89,5 @@ export const getUserFromValidate = (user: User) => {
     };
 };
 
-export const getToken = (user: User) => jwt.sign({id: user.id, email: user.email, username: user.username, cityFavourites: user.cityFavourites}, sshKey, {expiresIn: tokenLifetime});
+export const getAccessToken = (user: User) => jwt.sign({id: user.id, email: user.email, username: user.username, cityFavourites: user.cityFavourites}, sshKey, {expiresIn: accesTokenLifetime});
 export const getRefreshToken = (user: User) => jwt.sign({id: user.id, email: user.email, username: user.username, cityFavourites: user.cityFavourites}, sshKey, {expiresIn: refreshTokenLifetime});
