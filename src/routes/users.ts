@@ -1,8 +1,9 @@
 
 import express from "express";
 import { body, header } from "express-validator";
-import { regexPasswordValidation, showErrors } from "../utils/utils";
+import { regexPasswordValidation } from "../utils/utils";
 import Users from "../controllers/UserController";
+import { showErrors } from "../middlewares/showErrors";
 
 const router = express.Router();
 

@@ -1,8 +1,8 @@
 
 import express from "express";
 import { param } from "express-validator";
-import { showErrors } from "../utils/utils";
 import Weather from "../controllers/WeatherController";
+import { showErrors } from "../middlewares/showErrors";
 
 const router = express.Router();
 

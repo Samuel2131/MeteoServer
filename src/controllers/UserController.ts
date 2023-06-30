@@ -1,59 +1,73 @@
 
 import { v4 as uuidv4 } from "uuid";
 import bycript from "bcrypt";
-import { find, findWithVerify, insertUser, isIn, replaceOne } from "../db/dbUsers";
+import { find, findWithVerify, insertUser, replaceOne } from "../db/dbUsers";
 import { Request, Response } from "express";
 import { convertToken, getRefreshToken, getAccessToken, getUserFromSignup, getUserFromValidate, saltRounds } from "../utils/utils";
 import { sendEmail } from "../utils/utilsEmail";
 
 export default class Users {
     public static readonly signup = async ({ body }: Request, res: Response) => {
-        body.password = await bycript.hash(body.password, saltRounds);
-        body.verify = uuidv4();
+        try{
+            const user = await find(body.email);
+            if(user) return res.status(409).json({message: "Email already used..."});
 
-        body.cityFavorites = [];
+            body.password = await bycript.hash(body.password, saltRounds);
+            body.verify = uuidv4();
 
-        const {message: {code: checkCode, text: checkText }}= await find(body.email);
-        if(checkCode === 500) return res.status(500).json({message: checkText});
-        if(checkCode === 200) return res.status(409).json({message: "Insert err..."});
+            body.cityFavorites = [];
 
-        const {message: {code, text}, payload} = await insertUser(body);
-        if(code === 500) return res.status(code).json({message: text});
-        if(payload && payload.verify) {
-            if(!(await sendEmail(payload.email, payload.verify))) return res.status(500).json({message: "Unable to send validation email"});
+            const newUser = await insertUser(body);
+            await sendEmail(newUser.email, newUser.verify!);
+            res.status(201).json(getUserFromSignup(newUser));
+            /*
+            const {message: {code, text}, payload} = await insertUser(body);
+            if(code === 500) return res.status(code).json({message: text});
+            if(payload && payload.verify) {
+                if(!(await sendEmail(payload.email, payload.verify))) return res.status(500).json({message: "Unable to send validation email"});
+            }
+            res.status(code).json(getUserFromSignup(payload!));
+            */
+        } catch(e: any) {
+            res.status(500).json({message: e.message});
         }
-        res.status(code).json(getUserFromSignup(payload!));
     };
 
     public static readonly validate = async ({params}: Request, res: Response) => {
-        const {message: {code, text}, payload} = await findWithVerify(params.token);
-        if(code === 500) return res.status(code).json({message: text});
-        if(!payload) res.status(code).json({message: "user not found..."});
-        else {
-            const verify = payload.verify;
-            const {message: {code, text}} = await replaceOne(verify as string, getUserFromValidate(payload));
-            if(code === 500) return res.status(code).json({message: text});
-            res.json({message: "confirmed user"});
+        try{
+            const user = await findWithVerify(params.token);
+            if(!user) res.status(404).json({message: "user not found..."});
+            else {
+                const verify = user.verify;
+                await replaceOne(verify as string, getUserFromValidate(user));
+                //if(resultReplace.modifiedCount === 0) return res.status(code).json({message: text});
+                res.json({message: "confirmed user"});
+            }
+        } catch(e: any) {
+            res.status(500).json({message: e.message});
         }
     };
 
     public static readonly login = async ({body}: Request, res:  Response) => {
-        const {message: {code, text}, payload} = await find(body.email);
-        if(code === 500) return res.status(code).json({message: text});
-        if(!payload || payload.verify) res.status(404).json({message: "user not found..."});
-        else if(!await bycript.compare(body.password, payload.password)) res.status(401).json({message: "wrong credentials..."});
-        else { 
-            const userWithoutPassword = {
-                id: payload.id,
-                email: payload.email,
-                username: payload.username,
-                cityFavourites: [],
-                accessToken: "",
-                refreshToken: ""
-            };
-            userWithoutPassword.accessToken = getAccessToken(payload);
-            userWithoutPassword.refreshToken = getRefreshToken(payload);
-            res.json(userWithoutPassword);
+        try{
+            const user = await find(body.email);
+            if(!user) res.status(404).json({message: "user not found..."});
+            else if(!await bycript.compare(body.password, user.password)) res.status(401).json({message: "wrong credentials..."});
+            else { 
+                const userWithoutPassword = {
+                    id: user.id,
+                    email: user.email,
+                    username: user.username,
+                    cityFavourites: [],
+                    accessToken: "",
+                    refreshToken: ""
+                };
+                userWithoutPassword.accessToken = getAccessToken(user);
+                userWithoutPassword.refreshToken = getRefreshToken(user);
+                res.json(userWithoutPassword);
+            }
+        } catch(e: any) {
+            res.status(500).json({message: e.message});
         }
     };
 
@@ -61,17 +75,16 @@ export default class Users {
         try{
             const JwtPayload: any = convertToken(headers.authorization!);
             if(!JwtPayload.email) return res.status(401).json({message: JwtPayload.message});
-            const {message: {code}, payload} = await find(JwtPayload.email);
-            if(payload){
-                if(!isIn(payload.email)) return res.status(401).json({message: "not autorizhed"});
+            const user = await find(JwtPayload.email);
+            if(user){
                 res.json({
-                    id: payload.id,
-                    username: payload.username,
-                    cityFavorites: payload.cityFavourites,
-                    email: payload.email
+                    id: user.id,
+                    username: user.username,
+                    cityFavorites: user.cityFavourites,
+                    email: user.email
                 });
             }
-            else return res.status(code).json({message: "server error..."});
+            else return res.status(401).json({message: "server error..."});
         } catch(e: any) {
             res.status(500).json({message: e.message});
         }
@@ -81,15 +94,15 @@ export default class Users {
         try{
             const JwtPayload: any = convertToken(headers.refreshtoken!);
             if(!JwtPayload.email) return res.status(403).json({message: JwtPayload.message});
-            const {message: {code}, payload} = await find(JwtPayload.email);
-            if(payload){
-                if(!isIn(payload.email)) return res.status(403).json({message: "forbidden access..."});
+            const user = await find(JwtPayload.email);
+            if(user){
+                //if(!isIn(payload.email)) return res.status(403).json({message: "forbidden access..."});
                 res.json({
-                    accessToken: getAccessToken(payload),
-                    refreshToken: getAccessToken(payload)
+                    accessToken: getAccessToken(user),
+                    refreshToken: getAccessToken(user)
                 });
             }
-            else return res.status(code).json({message: "server error..."});
+            else return res.status(403).json({message: "server error..."});
         } catch(e: any) {
             res.status(500).json({message: e.message});
         }

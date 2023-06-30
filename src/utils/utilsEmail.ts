@@ -20,16 +20,11 @@ const VerifyAccount = (tokenVerify: string) => {
     </html>`;
 };
 
-export const sendEmail = async (email: string, verify: string): Promise<boolean> => {
-    try{
-        await transporter.sendMail({
-            from: "jany.reichert4@ethereal.email", 
-            to: email, 
-            subject: "Validation email",
-            html: VerifyAccount(verify), 
-        });
-        return true;
-    } catch(e) {
-        return false;
-    }
+export const sendEmail = async (email: string, verify: string) => {
+    await transporter.sendMail({
+        from: "jany.reichert4@ethereal.email", 
+        to: email, 
+        subject: "Validation email",
+        html: VerifyAccount(verify), 
+    });
 };

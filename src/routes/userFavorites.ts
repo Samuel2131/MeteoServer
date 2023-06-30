@@ -1,14 +1,18 @@
 
 import express from "express";
 import { header, param } from "express-validator";
-import { isAuth, showErrors } from "../utils/utils";
 import UserFavourites from "../controllers/UserFavouritesController";
+import { showErrors } from "../middlewares/showErrors";
+import { isAuth } from "../middlewares/isAuth";
+import { isValidCity } from "../middlewares/isValidCity";
 
 const router = express.Router();
 
 router.post("/:city", 
     header("authorization").isJWT(), 
     isAuth,
+    param("city").isString(), 
+    isValidCity,
     showErrors, 
     UserFavourites.addCity
 );
@@ -24,6 +28,7 @@ router.delete("/:city",
     header("authorization").isJWT(), 
     isAuth,
     param("city").isString(), 
+    isValidCity,
     showErrors, 
     UserFavourites.deleteCity
 );
