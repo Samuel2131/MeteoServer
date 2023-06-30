@@ -7,7 +7,7 @@ import users from "./routes/users";
 import userFavorites from "./routes/userFavorites";
 import cors from "cors";
 import "dotenv/config";
-import mongoose from "mongoose";
+import { startServer } from "./config/configServer";
 
 export const app = express();
 
@@ -20,11 +20,4 @@ app.use("/v1/forecastWeather", forecastWeather);
 app.use("/v1/users", users);
 app.use("/v1/users/favorites", userFavorites);
 
-//Todo:
-//Add file for db connection.
-//Add method for clear favourites list.
-//Try run test.
-app.listen(process.env.PORT, async () => {
-    console.log("Server is running");
-    mongoose.connect(`mongodb+srv://samperisisamuel:${process.env.PASSWORD}@UserDB.yvd6jyw.mongodb.net/${process.env.DB}?retryWrites=true&w=majority`);
-});
+app.listen(process.env.PORT, startServer);

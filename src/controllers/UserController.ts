@@ -1,12 +1,22 @@
 
 import { v4 as uuidv4 } from "uuid";
 import bycript from "bcrypt";
-import { find, findWithVerify, insertUser, replaceOne } from "../db/dbUsers";
+import { find, findAll, findWithVerify, insertUser, replaceOne } from "../db/dbUsers";
 import { Request, Response } from "express";
 import { convertToken, getRefreshToken, getAccessToken, getUserFromSignup, getUserFromValidate, saltRounds } from "../utils/utils";
 import { sendEmail } from "../utils/utilsEmail";
 
 export default class Users {
+
+    public static readonly getAll = async (_: Request, res: Response) => {
+        try{
+            const users = await findAll();
+            res.status(200).json(users.filter((user) => !user.verify).map((user) => ({username: user.username, email: user.email, cityFavourites: user.cityFavourites})));
+        } catch(e: any) {
+            res.status(500).json({message: e.message});
+        }
+    };
+
     public static readonly signup = async ({ body }: Request, res: Response) => {
         try{
             const user = await find(body.email);
@@ -20,14 +30,6 @@ export default class Users {
             const newUser = await insertUser(body);
             await sendEmail(newUser.email, newUser.verify!);
             res.status(201).json(getUserFromSignup(newUser));
-            /*
-            const {message: {code, text}, payload} = await insertUser(body);
-            if(code === 500) return res.status(code).json({message: text});
-            if(payload && payload.verify) {
-                if(!(await sendEmail(payload.email, payload.verify))) return res.status(500).json({message: "Unable to send validation email"});
-            }
-            res.status(code).json(getUserFromSignup(payload!));
-            */
         } catch(e: any) {
             res.status(500).json({message: e.message});
         }
@@ -40,7 +42,6 @@ export default class Users {
             else {
                 const verify = user.verify;
                 await replaceOne(verify as string, getUserFromValidate(user));
-                //if(resultReplace.modifiedCount === 0) return res.status(code).json({message: text});
                 res.json({message: "confirmed user"});
             }
         } catch(e: any) {
@@ -51,7 +52,7 @@ export default class Users {
     public static readonly login = async ({body}: Request, res:  Response) => {
         try{
             const user = await find(body.email);
-            if(!user) res.status(404).json({message: "user not found..."});
+            if(!user || user.verify) res.status(404).json({message: "user not found..."});
             else if(!await bycript.compare(body.password, user.password)) res.status(401).json({message: "wrong credentials..."});
             else { 
                 const userWithoutPassword = {
@@ -96,7 +97,6 @@ export default class Users {
             if(!JwtPayload.email) return res.status(403).json({message: JwtPayload.message});
             const user = await find(JwtPayload.email);
             if(user){
-                //if(!isIn(payload.email)) return res.status(403).json({message: "forbidden access..."});
                 res.json({
                     accessToken: getAccessToken(user),
                     refreshToken: getAccessToken(user)

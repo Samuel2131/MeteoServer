@@ -1,5 +1,5 @@
 
-import { ResponseArrayDB, ResponseDB } from "../models/ResponseDBType";
+import { UpdateWriteOpResult } from "mongoose";
 import { UserDB, User } from "../models/mongooseSchema";
 
 export const insertUser = async (newObj: User) => {
@@ -9,24 +9,31 @@ export const insertUser = async (newObj: User) => {
 
 export const getAll = async () => {
     const users = await UserDB.find({});
-    return users
-    //return Array.from({length: users.length}, (index: number) => getUserFromSignup(users[index]));
+    return users;
 };
 
-export const replaceOne = async (filter: string, newUser: User) => {
+export const replaceOne = async (filter: string, newUser: User): Promise<UpdateWriteOpResult> => {
     return await UserDB.replaceOne({verify: filter}, newUser);
 };
 
-export const pushFavorites = async (filter: string, element: string) => {
+export const pushFavorites = async (filter: string, element: string): Promise<number> => {
     return (await UserDB.updateOne(({email: filter}), {$addToSet: {cityFavourites: element}})).modifiedCount;
 };
 
-export const removeFavorites = async (filter: string, element: string) => {
+export const clearFavourites = async (filter: string): Promise<number> => {
+    return (await UserDB.updateOne(({email: filter}), {$set: {cityFavourites: []}})).modifiedCount;
+}
+
+export const removeFavorites = async (filter: string, element: string): Promise<number> => {
     return (await UserDB.updateOne(({email: filter}), {$pull: {cityFavourites: element}})).modifiedCount;
 };
 
 export const find = async (email: string) => {
     return await UserDB.findOne({email: email});
+};
+
+export const findAll = async () => {
+    return await UserDB.find({});
 };
 
 export const findWithVerify = async (verify: string) => {

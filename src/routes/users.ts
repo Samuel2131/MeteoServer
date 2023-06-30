@@ -4,6 +4,7 @@ import { body, header } from "express-validator";
 import { regexPasswordValidation } from "../utils/utils";
 import Users from "../controllers/UserController";
 import { showErrors } from "../middlewares/showErrors";
+import { isAuth } from "../middlewares/isAuth";
 
 const router = express.Router();
 
@@ -36,6 +37,13 @@ router.get("/reauthorization",
     header("refreshtoken").isJWT(), 
     showErrors, 
     Users.reauthorization
+);
+
+router.get("/",
+    header("authorization").isJWT(),
+    isAuth,
+    showErrors,
+    Users.getAll
 );
 
 export default router;

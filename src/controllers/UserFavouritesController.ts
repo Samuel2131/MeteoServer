@@ -1,6 +1,6 @@
 
 import { Request, Response } from "express";
-import { find, pushFavorites, removeFavorites } from "../db/dbUsers";
+import { clearFavourites, find, pushFavorites, removeFavorites } from "../db/dbUsers";
 
 export default class UserFavourites {
     public static readonly addCity = async ({params}: Request, res: Response) => {
@@ -21,6 +21,15 @@ export default class UserFavourites {
             res.status(500).json({message: e.message});
         }
     };
+
+    public static readonly clearList = async (_: Request, res: Response) => {
+        try{
+            if(!(await clearFavourites(res.locals.user.email))) res.status(400).json({message: "List is already empty"});
+            else res.status(200).json({message: "List emptied successfully"});
+        } catch(e: any){
+            res.status(500).json({message: e.message});
+        }
+    }
 
     public static readonly deleteCity = async ({params}: Request, res: Response) => {
         try{

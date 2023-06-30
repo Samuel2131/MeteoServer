@@ -18,6 +18,11 @@ describe("endpoints users", () => {
         email: "samperisi.samuel@gmail.com",
         password: "Password1234"
     };
+    const user2 = {
+        username: "Sam0107",
+        email: "samperisi.sam@gmail.com",
+        password: "Password4321"
+    };
     describe("test signup", () => {
         after(async () => {
             await dropUserDB();
@@ -172,6 +177,36 @@ describe("endpoints users", () => {
             status2.should.be.equal(200);
         });
     });
+    describe("test get all users", () => {
+        let newUser: User, newUser2: User;
+        before(async () => {
+            newUser = (await request(app).post(`${pathUser}signup`).send({...user})).body;
+            await request(app).get(`${pathUser}validate/${newUser.verify}`);
+            newUser = (await request(app).post(`${pathUser}login`).send({email: user.email, password: user.password})).body;
+
+            newUser2 = (await request(app).post(`${pathUser}signup`).send({...user2})).body;
+        });
+        after(async () => {
+            await dropUserDB();
+        });
+        it("test 200 for valid get all users", async () => {
+            const { status, body } = await request(app).get(`${pathUser}`).set({authorization: newUser.accessToken});
+
+            status.should.be.equal(200);
+            body.should.have.length(1);
+        });
+        it("test filter for not verified users", async () => {
+            await request(app).get(`${pathUser}validate/${newUser2.verify}`);
+            const { status, body } = await request(app).get(`${pathUser}`).set({authorization: newUser.accessToken});
+
+            status.should.be.equal(200);
+            body.should.have.length(2);
+        });
+        it("test 401 for wrong access token", async () => {
+            const { status } = await request(app).get(`${pathUser}`).set({authorization: "wrong-accessToken"});
+            status.should.be.equal(401);
+        });
+    });
     describe("test favorites", () => {
         let newUser: User;
         before(async () => {
@@ -209,6 +244,19 @@ describe("endpoints users", () => {
 
             const { body } = await request(app).get(`${pathUserFavorites}`).set({authorization: newUser.accessToken});
             body.should.have.length(0);
+        });
+        it("test 200 for valid list clear", async () => {
+            await request(app).post(`${pathUserFavorites}/Torino`).set({authorization: newUser.accessToken});
+
+            const { status } = await request(app).delete(`${pathUserFavorites}`).set({authorization: newUser.accessToken});
+            status.should.be.equal(200);
+            
+            const { body } = await request(app).get(`${pathUserFavorites}`).set({authorization: newUser.accessToken});
+            body.should.have.length(0); 
+        });
+        it("test 400 for list already empty", async () => {
+            const { status } = await request(app).delete(`${pathUserFavorites}`).set({authorization: newUser.accessToken});
+            status.should.be.equal(400);
         });
         it("test 401 for invalid token(post)", async () => {
             const { status } = await request(app).post(`${pathUserFavorites}/Roma`).set({authorization: "wrong-token"});

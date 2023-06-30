@@ -24,6 +24,13 @@ router.get("/",
     UserFavourites.getCity
 );
 
+router.delete("/",
+    header("authorization").isJWT(),
+    isAuth,
+    showErrors,
+    UserFavourites.clearList
+);
+
 router.delete("/:city", 
     header("authorization").isJWT(), 
     isAuth,
