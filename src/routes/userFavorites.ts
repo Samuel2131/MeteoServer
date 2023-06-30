@@ -5,14 +5,14 @@ import UserFavourites from "../controllers/UserFavouritesController";
 import { showErrors } from "../middlewares/showErrors";
 import { isAuth } from "../middlewares/isAuth";
 import { isValidCity } from "../middlewares/isValidCity";
+import { validateCity } from "../middlewares/validateCity";
 
 const router = express.Router();
 
 router.post("/:city", 
     header("authorization").isJWT(), 
     isAuth,
-    param("city").isString(), 
-    isValidCity,
+    validateCity,
     showErrors, 
     UserFavourites.addCity
 );
@@ -34,8 +34,7 @@ router.delete("/",
 router.delete("/:city", 
     header("authorization").isJWT(), 
     isAuth,
-    param("city").isString(), 
-    isValidCity,
+    validateCity,
     showErrors, 
     UserFavourites.deleteCity
 );

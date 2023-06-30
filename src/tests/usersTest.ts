@@ -138,7 +138,6 @@ describe("endpoints users", () => {
             const { body, status } = await request(app).get(`${pathUser}me`).set({authorization: newUser.accessToken});
 
             status.should.be.equal(200);
-            body.should.have.property("id");
             body.should.have.property("email");
             body.should.have.property("username");
             body.should.have.property("cityFavorites");

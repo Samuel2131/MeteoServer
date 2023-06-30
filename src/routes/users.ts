@@ -1,24 +1,22 @@
 
 import express from "express";
-import { body, header } from "express-validator";
-import { regexPasswordValidation } from "../utils/utils";
+import { header } from "express-validator";
 import Users from "../controllers/UserController";
 import { showErrors } from "../middlewares/showErrors";
 import { isAuth } from "../middlewares/isAuth";
+import { validateSignup } from "../middlewares/validateSignup";
+import { validateLogin } from "../middlewares/validateLogin";
 
 const router = express.Router();
 
 router.post("/signup", 
-    body("password").matches(regexPasswordValidation), 
-    body("username").notEmpty().isString(), 
-    body("email").notEmpty().isString().isEmail(),
+    validateSignup,
     showErrors, 
     Users.signup
 );
 
 router.post("/login", 
-    body("email").notEmpty().isString().isEmail(), 
-    body("password").notEmpty().isString(), 
+    validateLogin,
     showErrors, 
     Users.login
 );

@@ -79,7 +79,6 @@ export default class Users {
             const user = await find(JwtPayload.email);
             if(user){
                 res.json({
-                    id: user.id,
                     username: user.username,
                     cityFavorites: user.cityFavourites,
                     email: user.email
