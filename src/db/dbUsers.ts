@@ -22,7 +22,7 @@ export const pushFavorites = async (filter: string, element: string): Promise<nu
 
 export const clearFavourites = async (filter: string): Promise<number> => {
     return (await UserDB.updateOne(({email: filter}), {$set: {cityFavourites: []}})).modifiedCount;
-}
+};
 
 export const removeFavorites = async (filter: string, element: string): Promise<number> => {
     return (await UserDB.updateOne(({email: filter}), {$pull: {cityFavourites: element}})).modifiedCount;

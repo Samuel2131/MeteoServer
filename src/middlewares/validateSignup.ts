@@ -6,4 +6,6 @@ export const validateSignup = [
     body("password").matches(regexPasswordValidation), 
     body("username").notEmpty().isString(), 
     body("email").notEmpty().isString().isEmail(),
+    body("age").notEmpty().isFloat({min: 18}),
+    body("gender").notEmpty().isString()
 ];

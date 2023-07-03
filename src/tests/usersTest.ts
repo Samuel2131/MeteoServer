@@ -16,12 +16,16 @@ describe("endpoints users", () => {
     const user = {
         username: "Samuel21",
         email: "samperisi.samuel@gmail.com",
-        password: "Password1234"
+        password: "Password1234",
+        age: 20,
+        gender: "Male"
     };
     const user2 = {
         username: "Sam0107",
         email: "samperisi.sam@gmail.com",
-        password: "Password4321"
+        password: "Password4321",
+        age: 21,
+        gender: "Female"
     };
     describe("test signup", () => {
         after(async () => {
@@ -33,6 +37,8 @@ describe("endpoints users", () => {
             status.should.be.equal(201);
             body.should.have.property("id");
             body.should.have.property("username").equal(user.username);
+            body.should.have.property("age").equal(user.age);
+            body.should.have.property("gender").equal(user.gender);
             body.should.have.property("email").equal(user.email);
             body.should.not.have.property("password");
             body.should.have.property("cityFavourites").have.length(0);
@@ -70,7 +76,11 @@ describe("endpoints users", () => {
             status.should.be.equal(400);
         });
         it("test 400 for missing value", async () => {
-            const { status } = await request(app).post(`${pathUser}signup`).send({password: "12345678910", email:"samperisi.samuel@gmail.com"});
+            const { status } = await request(app).post(`${pathUser}signup`).send({password: "Pa12345678910", email:"samperisi.samuel@gmail.com"});
+            status.should.be.equal(400);
+        });
+        it("test 400 for invalid age", async () => {
+            const { status } = await request(app).post(`${pathUser}signup`).send({...user2, age: 1});
             status.should.be.equal(400);
         });
     });
@@ -140,6 +150,8 @@ describe("endpoints users", () => {
             status.should.be.equal(200);
             body.should.have.property("email");
             body.should.have.property("username");
+            body.should.have.property("age");
+            body.should.have.property("gender");
             body.should.have.property("cityFavorites");
         });
     });

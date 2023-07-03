@@ -29,7 +29,7 @@ export default class UserFavourites {
         } catch(e: any){
             res.status(500).json({message: e.message});
         }
-    }
+    };
 
     public static readonly deleteCity = async ({params}: Request, res: Response) => {
         try{

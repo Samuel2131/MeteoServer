@@ -11,7 +11,7 @@ export default class Users {
     public static readonly getAll = async (_: Request, res: Response) => {
         try{
             const users = await findAll();
-            res.status(200).json(users.filter((user) => !user.verify).map((user) => ({username: user.username, email: user.email, cityFavourites: user.cityFavourites})));
+            res.status(200).json(users.filter((user) => !user.verify).map((user) => ({username: user.username, email: user.email, age: user.age, gender: user.gender, cityFavourites: user.cityFavourites})));
         } catch(e: any) {
             res.status(500).json({message: e.message});
         }
@@ -59,6 +59,8 @@ export default class Users {
                     id: user.id,
                     email: user.email,
                     username: user.username,
+                    age: user.age,
+                    gender: user.gender,
                     cityFavourites: [],
                     accessToken: "",
                     refreshToken: ""
@@ -81,7 +83,9 @@ export default class Users {
                 res.json({
                     username: user.username,
                     cityFavorites: user.cityFavourites,
-                    email: user.email
+                    email: user.email,
+                    age: user.age,
+                    gender: user.gender
                 });
             }
             else return res.status(401).json({message: "server error..."});

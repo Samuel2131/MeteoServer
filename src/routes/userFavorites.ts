@@ -1,10 +1,9 @@
 
 import express from "express";
-import { header, param } from "express-validator";
+import { header } from "express-validator";
 import UserFavourites from "../controllers/UserFavouritesController";
 import { showErrors } from "../middlewares/showErrors";
 import { isAuth } from "../middlewares/isAuth";
-import { isValidCity } from "../middlewares/isValidCity";
 import { validateCity } from "../middlewares/validateCity";
 
 const router = express.Router();

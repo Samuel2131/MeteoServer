@@ -27,6 +27,8 @@ export const getUserFromSignup = (user: any) => {
         id: user._id,
         email: user.email,
         username: user.username,
+        age: user.age,
+        gender: user.gender,
         cityFavourites: user.cityFavourites,
         verify: user.verify
     };
@@ -37,10 +39,12 @@ export const getUserFromValidate = (user: any) => {
         id: user._id,
         email: user.email,
         username: user.username,
+        age: user.age,
+        gender: user.gender,
         cityFavourites: user.cityFavourites,
         password: user.password
     };
 };
 
-export const getAccessToken = (user: any) => jwt.sign({id: user.id, email: user.email, username: user.username, cityFavourites: user.cityFavourites}, sshKey, {expiresIn: accesTokenLifetime});
-export const getRefreshToken = (user: any) => jwt.sign({id: user.id, email: user.email, username: user.username, cityFavourites: user.cityFavourites}, sshKey, {expiresIn: refreshTokenLifetime});
+export const getAccessToken = (user: any) => jwt.sign({id: user.id, email: user.email, username: user.username, age: user.age, gender: user.gender, cityFavourites: user.cityFavourites}, sshKey, {expiresIn: accesTokenLifetime});
+export const getRefreshToken = (user: any) => jwt.sign({id: user.id, email: user.email, username: user.username, age: user.age, gender: user.gender, cityFavourites: user.cityFavourites}, sshKey, {expiresIn: refreshTokenLifetime});
