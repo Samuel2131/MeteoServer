@@ -9,7 +9,7 @@ export const UserSchema = new mongoose.Schema({
     password: {type: String, required: true},
     cityFavourites: {type: Array<string>, required: true},
     verify: String
-}, {versionKey: false});
+}, {versionKey: false, timestamps: true});
 
 export const UserDB = mongoose.model("user", UserSchema);
 

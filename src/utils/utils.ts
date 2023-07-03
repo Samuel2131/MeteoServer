@@ -8,6 +8,7 @@ export const urlGeocodingApi = "http://api.openweathermap.org/geo/1.0/direct";
 export const urlForecastWeather = "https://api.openweathermap.org/data/2.5/forecast";
 export const accesTokenLifetime = 60 * 60;
 export const refreshTokenLifetime = 120 * 60;
+export const checkDatabaseTime = 60 * 60 * 1000;
 export const longPassword = "LongPassword1LongPassword1LongPassword1LongPassword1LongPassword1";
 export const regexPasswordValidation = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,32}$/;
 export const saltRounds = 10;
@@ -46,5 +47,6 @@ export const getUserFromValidate = (user: any) => {
     };
 };
 
+export const getDay = (date1: Date, date2: Date) => Math.ceil(Math.abs(new Date(date1).getTime()-new Date(date2).getTime()) / (1000 * 60 * 60 * 24));
 export const getAccessToken = (user: any) => jwt.sign({id: user.id, email: user.email, username: user.username, age: user.age, gender: user.gender, cityFavourites: user.cityFavourites}, sshKey, {expiresIn: accesTokenLifetime});
 export const getRefreshToken = (user: any) => jwt.sign({id: user.id, email: user.email, username: user.username, age: user.age, gender: user.gender, cityFavourites: user.cityFavourites}, sshKey, {expiresIn: refreshTokenLifetime});

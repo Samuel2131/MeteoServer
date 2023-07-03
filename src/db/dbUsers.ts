@@ -7,11 +7,6 @@ export const insertUser = async (newObj: User) => {
     return await user.save();
 };
 
-export const getAll = async () => {
-    const users = await UserDB.find({});
-    return users;
-};
-
 export const replaceOne = async (filter: string, newUser: User): Promise<UpdateWriteOpResult> => {
     return await UserDB.replaceOne({verify: filter}, newUser);
 };
@@ -32,7 +27,7 @@ export const find = async (email: string) => {
     return await UserDB.findOne({email: email});
 };
 
-export const findAll = async () => {
+export const getAll = async () => {
     return await UserDB.find({});
 };
 
@@ -44,6 +39,10 @@ export const isIn = async (userEmail: string): Promise<boolean> => {
     const res = await getAll();
     if(res.length !== 0) return res.some(({email}) => email === userEmail);
     return false;
+};
+
+export const deleteOne = async (userEmail: string) => {
+    return await UserDB.deleteOne({email: userEmail});
 };
 
 export const dropUserDB = async () => {

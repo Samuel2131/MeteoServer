@@ -1,7 +1,7 @@
 
 import { v4 as uuidv4 } from "uuid";
 import bycript from "bcrypt";
-import { find, findAll, findWithVerify, insertUser, replaceOne } from "../db/dbUsers";
+import { find, findWithVerify, getAll, insertUser, replaceOne } from "../db/dbUsers";
 import { Request, Response } from "express";
 import { convertToken, getRefreshToken, getAccessToken, getUserFromSignup, getUserFromValidate, saltRounds } from "../utils/utils";
 import { sendEmail } from "../utils/utilsEmail";
@@ -10,7 +10,7 @@ export default class Users {
 
     public static readonly getAll = async (_: Request, res: Response) => {
         try{
-            const users = await findAll();
+            const users = await getAll();
             res.status(200).json(users.filter((user) => !user.verify).map((user) => ({username: user.username, email: user.email, age: user.age, gender: user.gender, cityFavourites: user.cityFavourites})));
         } catch(e: any) {
             res.status(500).json({message: e.message});
