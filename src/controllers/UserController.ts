@@ -52,7 +52,11 @@ export default class Users {
     public static readonly login = async ({body}: Request, res:  Response) => {
         try{
             const user = await find(body.email);
-            if(!user || user.verify) res.status(404).json({message: "user not found..."});
+            if(!user) res.status(404).json({message: "user not found..."});
+            else if(user.verify){
+                await sendEmail(user.email, user.verify!);
+                res.status(401).json({message: "unverified user..."});
+            }
             else if(!await bycript.compare(body.password, user.password)) res.status(401).json({message: "wrong credentials..."});
             else { 
                 const userWithoutPassword = {
@@ -67,7 +71,7 @@ export default class Users {
                 };
                 userWithoutPassword.accessToken = getAccessToken(user);
                 userWithoutPassword.refreshToken = getRefreshToken(user);
-                res.json(userWithoutPassword);
+                res.json({userDate: userWithoutPassword, creationDate: user.createdAt.toDateString()});
             }
         } catch(e: any) {
             res.status(500).json({message: e.message});
