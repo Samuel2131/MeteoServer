@@ -1,7 +1,7 @@
 
 import express from "express";
 import { header } from "express-validator";
-import Users from "../controllers/UserController";
+import Users from "../../controllers/UserController";
 import { showErrors } from "../middlewares/showErrors";
 import { isAuth } from "../middlewares/isAuth";
 import { validateSignup } from "../middlewares/validateSignup";

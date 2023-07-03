@@ -1,23 +1,16 @@
 
 import express, { json } from "express";
-import weather from "./routes/currentWeather";
-import airQuality from "./routes/airQuality";
-import forecastWeather from "./routes/forecastWeather";
-import users from "./routes/users";
-import userFavorites from "./routes/userFavorites";
 import cors from "cors";
 import "dotenv/config";
 import { startServer } from "./config/configServer";
+import indexV1 from "./v1/index";
 
 export const app = express();
 
 app.use(cors());
 app.use(json());
+app.use("/v1", indexV1);
+app.use("/status", (_, res) => res.status(200).json({message: "Server is running"}));
 
-app.use("/v1/currentWeather", weather);
-app.use("/v1/airQuality", airQuality);
-app.use("/v1/forecastWeather", forecastWeather);
-app.use("/v1/users", users);
-app.use("/v1/users/favorites", userFavorites);
-
+//Todo:delete and put users;
 app.listen(process.env.PORT, startServer);

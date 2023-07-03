@@ -1,7 +1,7 @@
 
 import express from "express";
 import { header } from "express-validator";
-import UserFavourites from "../controllers/UserFavouritesController";
+import UserFavourites from "../../controllers/UserFavouritesController";
 import { showErrors } from "../middlewares/showErrors";
 import { isAuth } from "../middlewares/isAuth";
 import { validateCity } from "../middlewares/validateCity";

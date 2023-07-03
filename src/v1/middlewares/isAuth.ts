@@ -1,8 +1,8 @@
 
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload }  from "jsonwebtoken";
-import { sshKey } from "../utils/utils";
-import { isIn } from "../db/dbUsers";
+import { sshKey } from "../../utils/utils";
+import { isIn } from "../../db/dbUsers";
 
 export const isAuth = (req: Request, res: Response, next: NextFunction) => {
     try{
