@@ -5,6 +5,7 @@ import UserFavourites from "../../controllers/UserFavouritesController";
 import { showErrors } from "../middlewares/showErrors";
 import { isAuth } from "../middlewares/isAuth";
 import { validateCity } from "../middlewares/validateCity";
+import { toExpressHandler } from "../../utils/responseUtils";
 
 const router = express.Router();
 
@@ -13,21 +14,21 @@ router.post("/:city",
     isAuth,
     validateCity,
     showErrors, 
-    UserFavourites.addCity
+    toExpressHandler(UserFavourites.addCity)
 );
 
 router.get("/", 
     header("authorization").isJWT(), 
     isAuth,
     showErrors, 
-    UserFavourites.getCity
+    toExpressHandler(UserFavourites.getCity)
 );
 
 router.delete("/",
     header("authorization").isJWT(),
     isAuth,
     showErrors,
-    UserFavourites.clearList
+    toExpressHandler(UserFavourites.clearList)
 );
 
 router.delete("/:city", 
@@ -35,7 +36,7 @@ router.delete("/:city",
     isAuth,
     validateCity,
     showErrors, 
-    UserFavourites.deleteCity
+    toExpressHandler(UserFavourites.deleteCity)
 );
 
 export default router;

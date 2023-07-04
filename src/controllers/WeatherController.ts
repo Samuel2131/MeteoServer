@@ -1,40 +1,41 @@
 
-import { Request, Response } from "express";
+import { Request } from "express";
 import { getAirQuality, getCurrentWeather, getForecastWeather } from "../utils/utilsWeather";
+import { ResponseErrorBadRequest, ResponseErrorInternal, ResponseErrorNotFound, ResponseSuccessJson } from "../utils/responseUtils";
 
 export default class Weather {
-    public static readonly AirQuality = async ({params}: Request, res: Response) => {
+    public static readonly AirQuality = async ({params}: Request) => {
         const airQuality = await getAirQuality(params.city);
-        if(!airQuality) return res.status(404).json({message: "city not found"});
+        if(!airQuality) return ResponseErrorNotFound("city not found");
         const {data, status} = airQuality;
         if(status === 200) {
             const currentWeatherData = await getCurrentWeather(params.city);
-            if(!currentWeatherData) return res.status(404).json({message: "city not found"});
+            if(!currentWeatherData) return ResponseErrorNotFound("city not found");
             const {data: currentWeather, status: statusCurrentWeather} = currentWeatherData;
             if(statusCurrentWeather === 200) {
                 data.list[0].wind = currentWeather.wind;
-                return res.status(status).json(data);
+                return ResponseSuccessJson(data);
             }
-            else res.status(statusCurrentWeather).json({message: "Bad request..."});
+            else return ResponseErrorBadRequest(undefined, statusCurrentWeather);
         }
-        else res.status(status).json({message: "Bad request..."});
+        else return ResponseErrorBadRequest(undefined, status);
     };
 
-    public static readonly CurrentWeather = async ({params}: Request, res: Response) => {
+    public static readonly CurrentWeather = async ({params}: Request) => {
         try{
             const currentWeather = await getCurrentWeather(params.city);
-            if(!currentWeather) return res.status(404).json({message: "city not found"});
+            if(!currentWeather) return ResponseErrorNotFound("city not found");
             const {data, status} = currentWeather;
-            res.status(status).json(data);
+            return ResponseSuccessJson(data, status);
         }catch(e: any){ 
-            res.status(e.response.status).json({message: e.response.statusText});
+            return ResponseErrorInternal(e.response.statusText, e.response.status);
         }
     };
 
-    public static readonly ForecastWeather = async ({params, query}: Request, res: Response) => {
+    public static readonly ForecastWeather = async ({params, query}: Request) => {
         try{
             const forecastWeather = await getForecastWeather(params.city);
-            if(!forecastWeather) return res.status(404).json({message: "city not found"});
+            if(!forecastWeather) return ResponseErrorNotFound("city not found");
             const {data, status} = forecastWeather;
             if(query.limit){
                 let dayArray: Array<0 | 1 | 2 | 3 | 4 | 5 | 6> = [0, 1, 2, 3, 4, 5, 6];
@@ -48,10 +49,10 @@ export default class Weather {
                     else return false;
                 });
             }
-            if(status === 200) return res.status(status).json(data);
-            else res.status(status).json({message: "Bad request..."});
+            if(status === 200) return ResponseSuccessJson(data, status);
+            else return ResponseErrorBadRequest(undefined, status);
         }catch(e: any){ 
-            res.status(e.response.status).json({message: e.response.statusText});
+            return ResponseErrorInternal(e.response.statusText, e.response.status);
         }
     };
 }

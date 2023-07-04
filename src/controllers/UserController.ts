@@ -2,25 +2,33 @@
 import { v4 as uuidv4 } from "uuid";
 import bycript from "bcrypt";
 import { find, findWithVerify, getAll, insertUser, replaceOne } from "../db/dbUsers";
-import { Request, Response } from "express";
+import { Request } from "express";
 import { convertToken, getRefreshToken, getAccessToken, getUserFromSignup, getUserFromValidate, saltRounds } from "../utils/utils";
 import { sendEmail } from "../utils/utilsEmail";
+import { ResponseErrorAuthorization, ResponseErrorConflict, ResponseErrorForbidden, ResponseErrorInternal, ResponseErrorNotFound, ResponseSuccessJson } from "../utils/responseUtils";
 
 export default class Users {
 
-    public static readonly getAll = async (_: Request, res: Response) => {
+    public static readonly getAll = async () => {
         try{
             const users = await getAll();
-            res.status(200).json(users.filter((user) => !user.verify).map((user) => ({username: user.username, email: user.email, age: user.age, gender: user.gender, cityFavourites: user.cityFavourites})));
+            return ResponseSuccessJson(users.filter((user) => !user.verify).map((user) => ({
+                username: user.username, 
+                email: user.email, 
+                age: user.age, 
+                gender: user.gender, 
+                cityFavourites: 
+                user.cityFavourites
+            })));
         } catch(e: any) {
-            res.status(500).json({message: e.message});
+            return ResponseErrorInternal(e.message);
         }
     };
 
-    public static readonly signup = async ({ body }: Request, res: Response) => {
+    public static readonly signup = async ({ body }: Request) => {
         try{
             const user = await find(body.email);
-            if(user) return res.status(409).json({message: "Email already used..."});
+            if(user) return ResponseErrorConflict("Email already used...");
 
             body.password = await bycript.hash(body.password, saltRounds);
             body.verify = uuidv4();
@@ -29,35 +37,35 @@ export default class Users {
 
             const newUser = await insertUser(body);
             await sendEmail(newUser.email, newUser.verify!);
-            res.status(201).json(getUserFromSignup(newUser));
+            return ResponseSuccessJson(getUserFromSignup(newUser), 201);
         } catch(e: any) {
-            res.status(500).json({message: e.message});
+            return ResponseErrorInternal(e.message);
         }
     };
 
-    public static readonly validate = async ({params}: Request, res: Response) => {
+    public static readonly validate = async ({params}: Request) => {
         try{
             const user = await findWithVerify(params.token);
-            if(!user) res.status(404).json({message: "user not found..."});
+            if(!user) return ResponseErrorNotFound("user not found...");
             else {
                 const verify = user.verify;
                 await replaceOne(verify as string, getUserFromValidate(user));
-                res.json({message: "confirmed user"});
+                return ResponseSuccessJson({message: "confirmed user"});
             }
         } catch(e: any) {
-            res.status(500).json({message: e.message});
+            return ResponseErrorInternal(e.message);
         }
     };
 
-    public static readonly login = async ({body}: Request, res:  Response) => {
+    public static readonly login = async ({body}: Request) => {
         try{
             const user = await find(body.email);
-            if(!user) res.status(404).json({message: "user not found..."});
+            if(!user) return ResponseErrorNotFound("user not found...");
             else if(user.verify){
                 await sendEmail(user.email, user.verify!);
-                res.status(401).json({message: "unverified user..."});
+                return ResponseErrorAuthorization("unverified user...");
             }
-            else if(!await bycript.compare(body.password, user.password)) res.status(401).json({message: "wrong credentials..."});
+            else if(!await bycript.compare(body.password, user.password)) return ResponseErrorAuthorization("wrong credentials...");
             else { 
                 const userWithoutPassword = {
                     id: user.id,
@@ -71,20 +79,20 @@ export default class Users {
                 };
                 userWithoutPassword.accessToken = getAccessToken(user);
                 userWithoutPassword.refreshToken = getRefreshToken(user);
-                res.json({userDate: userWithoutPassword, creationDate: user.createdAt.toDateString()});
+                return ResponseSuccessJson({userDate: userWithoutPassword, creationDate: user.createdAt.toDateString()});
             }
         } catch(e: any) {
-            res.status(500).json({message: e.message});
+            return ResponseErrorInternal(e.message);
         }
     };
 
-    public static readonly me = async ({headers}: Request, res: Response) => {
+    public static readonly me = async ({headers}: Request) => {
         try{
             const JwtPayload: any = convertToken(headers.authorization!);
-            if(!JwtPayload.email) return res.status(401).json({message: JwtPayload.message});
+            if(!JwtPayload.email) return ResponseErrorAuthorization(JwtPayload.message);
             const user = await find(JwtPayload.email);
             if(user){
-                res.json({
+                return ResponseSuccessJson({
                     username: user.username,
                     cityFavorites: user.cityFavourites,
                     email: user.email,
@@ -92,26 +100,26 @@ export default class Users {
                     gender: user.gender
                 });
             }
-            else return res.status(401).json({message: "server error..."});
+            else return ResponseErrorAuthorization("not authorized...");
         } catch(e: any) {
-            res.status(500).json({message: e.message});
+            return ResponseErrorInternal(e.message);
         }
     };
 
-    public static readonly reauthorization = async ({headers}: Request, res: Response) => {
+    public static readonly reauthorization = async ({headers}: Request) => {
         try{
             const JwtPayload: any = convertToken(headers.refreshtoken!);
-            if(!JwtPayload.email) return res.status(403).json({message: JwtPayload.message});
+            if(!JwtPayload.email) return ResponseErrorForbidden(JwtPayload.message);
             const user = await find(JwtPayload.email);
             if(user){
-                res.json({
+                return ResponseSuccessJson({
                     accessToken: getAccessToken(user),
                     refreshToken: getAccessToken(user)
                 });
             }
-            else return res.status(403).json({message: "server error..."});
+            else return ResponseErrorForbidden("access denied...");
         } catch(e: any) {
-            res.status(500).json({message: e.message});
+            return ResponseErrorInternal(e.message);
         }
     };
 }

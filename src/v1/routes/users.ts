@@ -6,42 +6,43 @@ import { showErrors } from "../middlewares/showErrors";
 import { isAuth } from "../middlewares/isAuth";
 import { validateSignup } from "../middlewares/validateSignup";
 import { validateLogin } from "../middlewares/validateLogin";
+import { toExpressHandler } from "../../utils/responseUtils";
 
 const router = express.Router();
 
 router.post("/signup", 
     validateSignup,
     showErrors, 
-    Users.signup
+    toExpressHandler(Users.signup)
 );
 
 router.post("/login", 
     validateLogin,
     showErrors, 
-    Users.login
+    toExpressHandler(Users.login)
 );
 
 router.get("/validate/:token", 
-    Users.validate
+    toExpressHandler(Users.validate)
 );
 
 router.get("/me", 
     header("authorization").isJWT(), 
     showErrors, 
-    Users.me
+    toExpressHandler(Users.me)
 );
 
 router.get("/reauthorization", 
     header("refreshtoken").isJWT(), 
     showErrors, 
-    Users.reauthorization
+    toExpressHandler(Users.reauthorization)
 );
 
 router.get("/",
     header("authorization").isJWT(),
     isAuth,
     showErrors,
-    Users.getAll
+    toExpressHandler(Users.getAll)
 );
 
 export default router;
