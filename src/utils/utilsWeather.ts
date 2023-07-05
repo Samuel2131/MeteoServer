@@ -1,13 +1,13 @@
 
 import axios from "axios";
-import { apyKeyWeather, urlAirPollutionApi, urlForecastWeather, urlGeocodingApi, urlWeatherMap } from "./utils";
 import { WeatherPollutionType } from "../models/weatherPollutionType";
 import { WeatherData } from "../models/weatherType";
 import { WeatherForecast } from "../models/weatherForecastType";
+import "dotenv/config";
 
 const getGeocodingData = async (city: string) => {
     try{
-        const { data: geocoding } = await axios.get(`${urlGeocodingApi}?q=${city}&limit=1&appid=${apyKeyWeather}`);
+        const { data: geocoding } = await axios.get(`${process.env.URLGEOCODINGAPI}?q=${city}&limit=1&appid=${process.env.APYKEYWEATHER}`);
         if(geocoding.length === 0) return null;
         return geocoding;
     } catch(e){
@@ -20,7 +20,7 @@ export const getAirQuality = async (city: string) => {
         const geocoding = await getGeocodingData(city);
         if(!geocoding) return null;
 
-        const { data, status } = await axios.get<WeatherPollutionType>(`${urlAirPollutionApi}?lat=${geocoding[0].lat}&lon=${geocoding[0].lon}&appid=${apyKeyWeather}`);
+        const { data, status } = await axios.get<WeatherPollutionType>(`${process.env.URLAIRPOLLUTIONAPI}?lat=${geocoding[0].lat}&lon=${geocoding[0].lon}&appid=${process.env.APYKEYWEATHER}`);
         return {data, status};
     } catch(e){
         return null;
@@ -29,7 +29,7 @@ export const getAirQuality = async (city: string) => {
 
 export const getCurrentWeather = async (city: string) => {
     try{
-        const {data, status} = await axios.get<WeatherData>(`${urlWeatherMap}?q=${city}&appid=${apyKeyWeather}`);
+        const {data, status} = await axios.get<WeatherData>(`${process.env.URLWEATHERMAP}?q=${city}&appid=${process.env.APYKEYWEATHER}`);
         return {data, status};
     } catch(e) {
         return null;
@@ -38,7 +38,7 @@ export const getCurrentWeather = async (city: string) => {
 
 export const getForecastWeather = async (city: string) => {
     try{
-        const { data, status } = await axios.get<WeatherForecast>(`${urlForecastWeather}?q=${city}&appid=${apyKeyWeather}`);
+        const { data, status } = await axios.get<WeatherForecast>(`${process.env.URLFORECASTWEATHER}?q=${city}&appid=${process.env.APYKEYWEATHER}`);
         return {data, status};
     } catch(e) {
         return null;

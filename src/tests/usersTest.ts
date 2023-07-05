@@ -132,12 +132,12 @@ describe("endpoints users", () => {
             status.should.be.equal(200);
             (body.userDate.accessToken).should.be.not.empty;
             (body.userDate.refreshToken).should.be.not.empty;
+            (body.creationDate).should.be.not.empty;
         });
         it("test 401 for unauthorized", async () => {
             const { status } = await request(app).post(`${pathUser}login`).send({email: user.email, password: "wrong password"});
             status.should.be.equal(401);
         });
-        //Test return creation date;
     });
     describe("test me", async () => {
         let newUser: User;
