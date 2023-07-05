@@ -13,6 +13,14 @@ const pathUserFavorites = "/v1/users/favorites/";
 should();
 
 describe("endpoints users", () => {
+    describe("test server status", () => {
+        it("test 200", async () => {
+            const { status, body } = await request(app).get("/status");
+
+            body.message.should.be.equal("Server is running");
+            status.should.be.equal(200);
+        });
+    });
     const user = {
         username: "Samuel21",
         email: "samperisi.samuel@gmail.com",
@@ -109,9 +117,9 @@ describe("endpoints users", () => {
         after(async () => {
             await dropUserDB();
         });
-        it("test 404 for missing verify", async () => {
+        it("test 401 for missing verify", async () => {
             const { status } = await request(app).post(`${pathUser}login`).send({email: user.email, password: user.password});
-            status.should.be.equal(404);
+            status.should.be.equal(401);
         });
         it("test 404 for user not found", async () => {
             const { status } = await request(app).post(`${pathUser}login`).send({email: "emailacaso@gmail.com", password: "Password5678"});
@@ -122,20 +130,21 @@ describe("endpoints users", () => {
             const { body, status } = await request(app).post(`${pathUser}login`).send({email: user.email, password: user.password});
 
             status.should.be.equal(200);
-            (body.accessToken).should.be.not.empty;
-            (body.refreshToken).should.be.not.empty;
+            (body.userDate.accessToken).should.be.not.empty;
+            (body.userDate.refreshToken).should.be.not.empty;
         });
         it("test 401 for unauthorized", async () => {
             const { status } = await request(app).post(`${pathUser}login`).send({email: user.email, password: "wrong password"});
             status.should.be.equal(401);
         });
+        //Test return creation date;
     });
     describe("test me", async () => {
         let newUser: User;
         before(async () => {
             newUser = (await request(app).post(`${pathUser}signup`).send({...user})).body;
             await request(app).get(`${pathUser}validate/${newUser.verify}`);
-            newUser = (await request(app).post(`${pathUser}login`).send({email: user.email, password: user.password})).body;
+            newUser = (await request(app).post(`${pathUser}login`).send({email: user.email, password: user.password})).body.userDate;
         });
         after(async () => {
             await dropUserDB();
@@ -160,7 +169,7 @@ describe("endpoints users", () => {
         before(async () => {
             newUser = (await request(app).post(`${pathUser}signup`).send({...user})).body;
             await request(app).get(`${pathUser}validate/${newUser.verify}`);
-            newUser = (await request(app).post(`${pathUser}login`).send({email: user.email, password: user.password})).body;
+            newUser = (await request(app).post(`${pathUser}login`).send({email: user.email, password: user.password})).body.userDate;
         });
         after(async () => {
             await dropUserDB();
@@ -193,7 +202,7 @@ describe("endpoints users", () => {
         before(async () => {
             newUser = (await request(app).post(`${pathUser}signup`).send({...user})).body;
             await request(app).get(`${pathUser}validate/${newUser.verify}`);
-            newUser = (await request(app).post(`${pathUser}login`).send({email: user.email, password: user.password})).body;
+            newUser = (await request(app).post(`${pathUser}login`).send({email: user.email, password: user.password})).body.userDate;
 
             newUser2 = (await request(app).post(`${pathUser}signup`).send({...user2})).body;
         });
@@ -223,7 +232,7 @@ describe("endpoints users", () => {
         before(async () => {
             newUser = (await request(app).post(`${pathUser}signup`).send({...user})).body;
             await request(app).get(`${pathUser}validate/${newUser.verify}`);
-            newUser = (await request(app).post(`${pathUser}login`).send({email: user.email, password: user.password})).body;
+            newUser = (await request(app).post(`${pathUser}login`).send({email: user.email, password: user.password})).body.userDate;
         });
         after(async () => {
             await dropUserDB();

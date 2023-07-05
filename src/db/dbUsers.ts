@@ -7,24 +7,34 @@ export const insertUser = async (newObj: User) => {
     return await user.save();
 };
 
+export const find = async (email: string) => {
+    return await UserDB.findOne({email: email});
+};
+
 export const replaceOne = async (filter: string, newUser: User): Promise<UpdateWriteOpResult> => {
     return await UserDB.replaceOne({verify: filter}, newUser);
 };
 
-export const pushFavorites = async (filter: string, element: string): Promise<number> => {
-    return (await UserDB.updateOne(({email: filter}), {$addToSet: {cityFavourites: element}})).modifiedCount;
+export const findCity = async (filter: string, city: string): Promise<number> => {
+    return (await UserDB.find({email: filter, cityFavourites: {$in : [city]}})).length;
 };
 
-export const clearFavourites = async (filter: string): Promise<number> => {
-    return (await UserDB.updateOne(({email: filter}), {$set: {cityFavourites: []}})).modifiedCount;
+export const pushFavorites = async (filter: string, element: string): Promise<UpdateWriteOpResult> => {
+    return await UserDB.updateOne(({email: filter}), {$addToSet: {cityFavourites: element}});
 };
 
-export const removeFavorites = async (filter: string, element: string): Promise<number> => {
-    return (await UserDB.updateOne(({email: filter}), {$pull: {cityFavourites: element}})).modifiedCount;
+export const clearFavorites = async (filter: string): Promise<UpdateWriteOpResult> => {
+    return await UserDB.updateOne(({email: filter}), {$set: {cityFavourites: []}});
 };
 
-export const find = async (email: string) => {
-    return await UserDB.findOne({email: email});
+export const removeFavorites = async (filter: string, element: string): Promise<UpdateWriteOpResult> => {
+    return await UserDB.updateOne(({email: filter}), {$pull: {cityFavourites: element}});
+};
+
+export const getCityFavoritesLength = async (filter: string): Promise<number> => {
+    const user = await find(filter);
+    const aggregateArrayLength = await UserDB.aggregate([{$project: {arrayLength: {$size: "$cityFavourites"}}}]);
+    return aggregateArrayLength.filter((res) => res._id.equals(user?._id))[0].arrayLength;
 };
 
 export const getAll = async () => {
