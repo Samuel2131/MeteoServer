@@ -8,9 +8,9 @@ import {
     IResponseErrorInternal, 
     IResponseErrorNotFound, 
     IResponseSuccessJson } from "../typings/responses";
-import { expressHandler, handlerReturn } from "../models/expressHandlerType";
+import { ExpressHandler, HandlerReturn } from "../models/expressHandlerType";
 
-export const toExpressHandler = <T>(handler: expressHandler<T>): handlerReturn => {
+export const toExpressHandler = <T>(handler: ExpressHandler<T>): HandlerReturn => {
     return (req: Request, res: Response, next: NextFunction) =>
         handler(req, res, next).then((response) => {
             response?.apply(res);
