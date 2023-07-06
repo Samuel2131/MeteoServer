@@ -3,12 +3,13 @@ import { deleteOne, getAll } from "../db/dbUsers";
 import { getHours } from "../utils/utils";
 
 export const clearNotVerifiedUsers = async () => {
+    console.log("clearNotVerifiedUsers");
     const users = await getAll();
-    users.forEach((user) => {
+    await Promise.all(users.map((user) => {
         try{
-            if(user.verify && getHours(new Date(), user.createdAt) >= 24) deleteOne(user.email);
+            if(user.verify && getHours(new Date(), user.createdAt) >= 24) return deleteOne(user.email);
         } catch(e){
             console.error(e);
         }
-    });
+    }));
 };
