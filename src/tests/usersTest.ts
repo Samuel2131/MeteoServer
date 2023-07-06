@@ -4,7 +4,6 @@ import { app } from "../app";
 import { should } from "chai";
 import { dropUserDB } from "../db/dbUsers";
 import { User } from "../models/mongooseSchema";
-import "dotenv/config";
 import { longPassword } from "../utils/utils";
 
 const pathUser = "/v1/users/";

@@ -10,6 +10,6 @@ export const isAuth = (req: Request, res: Response, next: NextFunction) => {
         if(!isIn(user.email)) return res.status(401).json({message: "not autorizhed"});
         else next();
     } catch (e: any){
-       res.status(401).json({message: e.message});
+        res.status(401).json({message: e.message});
     }
 };

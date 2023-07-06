@@ -1,7 +1,9 @@
 
+import { config } from "dotenv-flow";
+config({ silent: true });
+
 import express, { json } from "express";
 import cors from "cors";
-import "dotenv/config";
 import { startServer } from "./config/configServer";
 import indexV1 from "./v1/index";
 

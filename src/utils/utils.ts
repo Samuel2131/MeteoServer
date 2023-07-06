@@ -1,6 +1,5 @@
 
 import jwt from "jsonwebtoken";
-import "dotenv/config";
 
 export const accesTokenLifetime = 60 * 60 * 1000;
 export const refreshTokenLifetime = 120 * 60 * 1000;

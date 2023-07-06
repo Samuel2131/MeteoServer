@@ -82,6 +82,7 @@ export default class Users {
                 return ResponseSuccessJson({userDate: userWithoutPassword, creationDate: user.createdAt.toDateString()});
             }
         } catch(e: any) {
+            console.log(e);
             return ResponseErrorInternal(e.message);
         }
     };

@@ -2,7 +2,6 @@
 import { checkDatabaseTime } from "../utils/utils";
 import { clearNotVerifiedUsers } from "./clearNotVerifiedUsers";
 import { dbConnection } from "./dbConnection";
-import "dotenv/config";
 
 export const startServer = async () => {
     dbConnection();

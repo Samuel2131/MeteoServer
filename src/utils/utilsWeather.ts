@@ -3,7 +3,6 @@ import axios from "axios";
 import { WeatherPollutionType } from "../models/weatherPollutionType";
 import { WeatherData } from "../models/weatherType";
 import { WeatherForecast } from "../models/weatherForecastType";
-import "dotenv/config";
 
 const getGeocodingData = async (city: string) => {
     try{
