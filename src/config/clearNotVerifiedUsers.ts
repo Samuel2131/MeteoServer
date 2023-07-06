@@ -3,7 +3,6 @@ import { deleteOne, getAll } from "../db/dbUsers";
 import { getHours } from "../utils/utils";
 
 export const clearNotVerifiedUsers = async () => {
-    console.log("clearNotVerifiedUsers");
     const users = await getAll();
     await Promise.all(users.map((user) => {
         try{

@@ -1,8 +1,8 @@
 
 import { v4 as uuidv4 } from "uuid";
 import bycript from "bcrypt";
-import { find, findWithVerify, getAll, insertUser, replaceOne } from "../db/dbUsers";
-import { Request } from "express";
+import { find, findWithVerify, getAll, insertUser, replaceOne, replaceOneWithEmail } from "../db/dbUsers";
+import { Request, Response } from "express";
 import { convertToken, getRefreshToken, getAccessToken, getUserFromSignup, getUserFromValidate, saltRounds } from "../utils/utils";
 import { sendEmail } from "../utils/utilsEmail";
 import { ResponseErrorAuthorization, ResponseErrorConflict, ResponseErrorForbidden, ResponseErrorInternal, ResponseErrorNotFound, ResponseSuccessJson } from "../utils/responseUtils";
@@ -119,6 +119,23 @@ export default class Users {
                 });
             }
             else return ResponseErrorForbidden("access denied...");
+        } catch(e: any) {
+            return ResponseErrorInternal(e.message);
+        }
+    };
+
+    public static readonly updateUser = async ({body}: Request, res: Response) => {
+        try{
+            const userToReplace = await find(res.locals.user.email);
+            const userToCheckNewEmail = await find(body.email);
+            if(!userToReplace) return ResponseErrorNotFound("User not found");
+            if(userToCheckNewEmail && userToReplace.id !== userToCheckNewEmail.id) return ResponseErrorConflict("Email already used...");
+
+            body.password = await bycript.hash(body.password, saltRounds);
+            body.cityFavorites = [];
+
+            await replaceOneWithEmail(userToReplace.email, body);
+            return ResponseSuccessJson({message: "Successfully updated user"});
         } catch(e: any) {
             return ResponseErrorInternal(e.message);
         }

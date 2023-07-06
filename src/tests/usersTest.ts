@@ -196,6 +196,28 @@ describe("endpoints users", () => {
             status2.should.be.equal(200);
         });
     });
+    describe("test put users", () => {
+        let newUser: User, newUser2: User;
+        before(async () => {
+            newUser = (await request(app).post(`${pathUser}signup`).send({...user})).body;
+            await request(app).get(`${pathUser}validate/${newUser.verify}`);
+            newUser = (await request(app).post(`${pathUser}login`).send({email: user.email, password: user.password})).body.userDate;
+
+            newUser2 = (await request(app).post(`${pathUser}signup`).send({...user2})).body;
+            await request(app).get(`${pathUser}validate/${newUser2.verify}`);
+            newUser2 = (await request(app).post(`${pathUser}login`).send({email: user2.email, password: user2.password})).body.userDate;
+        });
+        after(async () => {
+            await dropUserDB();
+        });
+        it("test 409 for email already used", async () => {
+            const { status } = await request(app).put(`${pathUser}`).set({authorization: newUser.accessToken}).send({...user, email: user2.email});
+            status.should.be.equal(409);
+        });
+        it("test 200 for right update", async () => {
+            //Todo:
+        });
+    });
     describe("test get all users", () => {
         let newUser: User, newUser2: User;
         before(async () => {

@@ -15,6 +15,10 @@ export const replaceOne = async (filter: string, newUser: User): Promise<UpdateW
     return await UserDB.replaceOne({verify: filter}, newUser);
 };
 
+export const replaceOneWithEmail = async (email: string, newUser: User): Promise<UpdateWriteOpResult> => {
+    return await UserDB.replaceOne({email: email}, newUser);
+};
+
 export const findCity = async (filter: string, city: string): Promise<number> => {
     return (await UserDB.find({email: filter, cityFavourites: {$in : [city]}})).length;
 };

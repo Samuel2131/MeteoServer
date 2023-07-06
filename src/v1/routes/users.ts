@@ -4,14 +4,14 @@ import { header } from "express-validator";
 import Users from "../../controllers/UserController";
 import { showErrors } from "../middlewares/showErrors";
 import { isAuth } from "../middlewares/isAuth";
-import { validateSignup } from "../middlewares/validateSignup";
+import { validateUserBody } from "../middlewares/validateUserBody";
 import { validateLogin } from "../middlewares/validateLogin";
 import { toExpressHandler } from "../../utils/responseUtils";
 
 const router = express.Router();
 
 router.post("/signup", 
-    validateSignup,
+    validateUserBody,
     showErrors, 
     toExpressHandler(Users.signup)
 );
@@ -43,6 +43,14 @@ router.get("/",
     isAuth,
     showErrors,
     toExpressHandler(Users.getAll)
+);
+
+router.put("/",
+    header("authorization").isJWT(),
+    isAuth,
+    validateUserBody,
+    showErrors,
+    toExpressHandler(Users.updateUser)
 );
 
 export default router;
