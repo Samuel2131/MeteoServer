@@ -215,7 +215,7 @@ describe("endpoints users", () => {
             status.should.be.equal(409);
         });
         it("test 200 for right update", async () => {
-            const { status } = await request(app).put(`${pathUser}`).set({authorization: newUser.accessToken}).send({...user2});
+            const { status } = await request(app).put(`${pathUser}`).set({authorization: newUser.accessToken}).send({...user});
             status.should.be.equal(200);
         });
     });
@@ -233,8 +233,8 @@ describe("endpoints users", () => {
             const { status } = await request(app).delete(`${pathUser}`).set({authorization: newUser.accessToken});
 
             status.should.be.equal(200);
-            const user = find(newUser.email);
-            user.should.be.null;
+            const user = await find(newUser.email);
+            user?.should.be.null;
         });
         it("test 404 for user to delete not found", async () => {
             const { status } = await request(app).delete(`${pathUser}`).set({authorization: newUser.accessToken});

@@ -37,7 +37,9 @@ export const getUserFromValidate = (user: any) => {
         age: user.age,
         gender: user.gender,
         cityFavourites: user.cityFavourites,
-        password: user.password
+        password: user.password,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
     };
 };
 

@@ -79,7 +79,7 @@ export default class Users {
                 };
                 userWithoutPassword.accessToken = getAccessToken(user);
                 userWithoutPassword.refreshToken = getRefreshToken(user);
-                return ResponseSuccessJson({userDate: userWithoutPassword, creationDate: user.createdAt.toDateString()});
+                return ResponseSuccessJson({userDate: userWithoutPassword, creationDate: new Date(user.createdAt).toDateString()});
             }
         } catch(e: any) {
             console.log(e);

@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "tsc && node ./build/app.js",
-    "test": "tsc && mocha --timeout 15000 ./build/tests/*.js",
+    "build": "tsc",
+    "start": "npm run build && node ./build/app.js",
+    "dev": "npx nodemon ./src/app.ts",
+    "test": "npm run build && mocha --timeout 15000 ./build/tests/*.js",
     "build:test": "env-cmd -f ./.env.test npm run-script test"
   },
   "author": "",
@@ -41,6 +43,8 @@
     "@types/uuid": "^9.0.1",
     "@typescript-eslint/eslint-plugin": "^5.59.11",
     "@typescript-eslint/parser": "^5.59.11",
-    "eslint": "^8.43.0"
+    "eslint": "^8.43.0",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1"
   }
 }

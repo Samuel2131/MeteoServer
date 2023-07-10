@@ -6,7 +6,7 @@ export const clearNotVerifiedUsers = async () => {
     const users = await getAll();
     await Promise.all(users.map((user) => {
         try{
-            if(user.verify && getHours(new Date(), user.createdAt) >= 24) return deleteOne(user.email);
+            if(user.verify && getHours(new Date(), new Date(user.createdAt)) >= 24) return deleteOne(user.email);
         } catch(e){
             console.error(e);
         }
