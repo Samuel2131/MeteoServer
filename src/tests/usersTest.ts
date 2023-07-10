@@ -2,7 +2,7 @@
 import request from "supertest";
 import { app } from "../app";
 import { should } from "chai";
-import { dropUserDB } from "../db/dbUsers";
+import { dropUserDB, find } from "../db/dbUsers";
 import { User } from "../models/mongooseSchema";
 import { longPassword } from "../utils/utils";
 
@@ -215,7 +215,30 @@ describe("endpoints users", () => {
             status.should.be.equal(409);
         });
         it("test 200 for right update", async () => {
-            //Todo:
+            const { status } = await request(app).put(`${pathUser}`).set({authorization: newUser.accessToken}).send({...user2});
+            status.should.be.equal(200);
+        });
+    });
+    describe("test delete user", () => {
+        let newUser: User;
+        before(async () => {
+            newUser = (await request(app).post(`${pathUser}signup`).send({...user})).body;
+            await request(app).get(`${pathUser}validate/${newUser.verify}`);
+            newUser = (await request(app).post(`${pathUser}login`).send({email: user.email, password: user.password})).body.userDate;
+        });
+        after(async () => {
+            await dropUserDB();
+        });
+        it("test 200 for right delete", async () => {
+            const { status } = await request(app).delete(`${pathUser}`).set({authorization: newUser.accessToken});
+
+            status.should.be.equal(200);
+            const user = find(newUser.email);
+            user.should.be.null;
+        });
+        it("test 404 for user to delete not found", async () => {
+            const { status } = await request(app).delete(`${pathUser}`).set({authorization: newUser.accessToken});
+            status.should.be.equal(404);
         });
     });
     describe("test get all users", () => {

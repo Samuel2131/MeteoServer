@@ -53,4 +53,11 @@ router.put("/",
     toExpressHandler(Users.updateUser)
 );
 
+router.delete("/",
+    header("authorization").isJWT(),
+    isAuth,
+    showErrors,
+    toExpressHandler(Users.deleteUser)
+);
+
 export default router;

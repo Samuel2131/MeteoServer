@@ -1,7 +1,7 @@
 
 import { v4 as uuidv4 } from "uuid";
 import bycript from "bcrypt";
-import { find, findWithVerify, getAll, insertUser, replaceOne, replaceOneWithEmail } from "../db/dbUsers";
+import { deleteOne, find, findWithVerify, getAll, insertUser, replaceOne, replaceOneWithEmail } from "../db/dbUsers";
 import { Request, Response } from "express";
 import { convertToken, getRefreshToken, getAccessToken, getUserFromSignup, getUserFromValidate, saltRounds } from "../utils/utils";
 import { sendEmail } from "../utils/utilsEmail";
@@ -136,6 +136,16 @@ export default class Users {
 
             await replaceOneWithEmail(userToReplace.email, body);
             return ResponseSuccessJson({message: "Successfully updated user"});
+        } catch(e: any) {
+            return ResponseErrorInternal(e.message);
+        }
+    };
+
+    public static readonly deleteUser = async (_: Request, res: Response) => {
+        try{
+            const deleteResult = await deleteOne(res.locals.user.email);
+            if(!deleteResult.deletedCount) return ResponseErrorNotFound("user not found...");
+            return ResponseSuccessJson({message: "Successfully deleted user"});
         } catch(e: any) {
             return ResponseErrorInternal(e.message);
         }
